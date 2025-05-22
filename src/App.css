@@ -1,0 +1,3 @@
+body {
+  @apply bg-slate-50 text-slate-800 antialiased; /* Default page background, text color, and font smoothing */
+}
