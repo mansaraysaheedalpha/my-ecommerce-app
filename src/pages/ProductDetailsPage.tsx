@@ -2,6 +2,7 @@
 import React from "react";
 import { useParams, Link as RouterLink } from "react-router-dom"; // Import Link for "Back to products"
 import { useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 import { mockProducts } from "../data/MockProducts";
 import { addItemToCart } from "../store/features/cart/cartSlice";
 
@@ -34,6 +35,7 @@ const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     dispatch(addItemToCart(product));
+    toast.success(`${name} added to cart!`);
   };
 
   return (

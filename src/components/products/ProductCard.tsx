@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 import type { Product } from "../../interfaces/Products";
 import { addItemToCart } from "../../store/features/cart/cartSlice";
 
@@ -14,6 +15,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const handleAddToCart = () => {
     dispatch(addItemToCart(product))
+    toast.success(`${name} added to cart!`)
   }
 
   return (
