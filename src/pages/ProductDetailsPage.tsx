@@ -1,10 +1,14 @@
 // src/pages/ProductDetailPage.tsx
 import React from "react";
 import { useParams, Link as RouterLink } from "react-router-dom"; // Import Link for "Back to products"
+import { useDispatch } from "react-redux";
 import { mockProducts } from "../data/MockProducts";
+import { addItemToCart } from "../store/features/cart/cartSlice";
 
 const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
+  const dispatch = useDispatch();
+
   const product = mockProducts.find((p) => p.id.toString() === productId);
 
   if (!product) {
@@ -25,6 +29,12 @@ const ProductDetailPage: React.FC = () => {
       </div>
     );
   }
+
+  const { imageUrl, name, price, description, category, stock } = product;
+
+  const handleAddToCart = () => {
+    dispatch(addItemToCart(product));
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -55,8 +65,8 @@ const ProductDetailPage: React.FC = () => {
         <div className="md:w-1/2 lg:w-2/5">
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <img
-              src={product.imageUrl}
-              alt={product.name}
+              src={imageUrl}
+              alt={name}
               className="w-full h-auto max-h-[500px] object-contain" // object-contain to see full image
             />
           </div>
@@ -64,21 +74,21 @@ const ProductDetailPage: React.FC = () => {
 
         {/* Right Column: Product Details */}
         <div className="md:w-1/2 lg:w-3/5">
-          {product.category && (
+          {category && (
             <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full uppercase tracking-wider ">
-              {product.category}
+              {category}
             </span>
           )}
           <h1 className="text-3xl lg:text-4xl font-bold text-slate-800 mt-3 mb-4">
-            {product.name}
+            {name}
           </h1>
 
           <p className="text-3xl font-light text-slate-900 mb-6">
-            ${product.price.toFixed(2)}
+            ${price.toFixed(2)}
           </p>
 
           <div className="prose prose-slate max-w-none mb-6 text-slate-600">
-            <p>{product.description}</p>
+            <p>{description}</p>
             {/* If description had more markdown/HTML, prose would style it nicely */}
           </div>
 
@@ -106,16 +116,14 @@ const ProductDetailPage: React.FC = () => {
 
           <button
             className="w-full sm:w-auto bg-blue-600 text-white py-3 px-8 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors text-base font-semibold"
-            // onClick={() => console.log('Add to cart:', product.id, document.getElementById('quantity').value)}
+            onClick={handleAddToCart}
           >
             Add to Cart
           </button>
 
-          {product.stock && (
+          {stock && (
             <p className="text-sm text-slate-500 mt-4">
-              {product.stock > 0
-                ? `${product.stock} items in stock`
-                : "Out of stock"}
+              {stock > 0 ? `${stock} items in stock` : "Out of stock"}
             </p>
           )}
         </div>

@@ -1,6 +1,8 @@
 import React from "react";
-import type { Product } from "../../interfaces/Products";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import type { Product } from "../../interfaces/Products";
+import { addItemToCart } from "../../store/features/cart/cartSlice";
 
 type ProductCardProps = {
   product: Product;
@@ -8,6 +10,12 @@ type ProductCardProps = {
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { id, imageUrl, name, price, category } = product;
+  const dispatch = useDispatch();
+
+  const handleAddToCart = () => {
+    dispatch(addItemToCart(product))
+  }
+
   return (
     <div className="group relative bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl">
       <Link to={`/products/${id}`}>
@@ -35,7 +43,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <p className="text-lg font-bold text-slate-900 mb-3">
           ${price.toFixed(2)}
         </p>
-        <button className="w-full bg-blue-600 py-2.5 px-4 rounded-md text-white text-sm font-semibold hover:bg-blue-700">
+        <button className="w-full bg-blue-600 py-2.5 px-4 rounded-md text-white text-sm font-semibold hover:bg-blue-700"
+        onClick={handleAddToCart}>
           Add to Cart
         </button>
 
