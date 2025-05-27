@@ -1,7 +1,6 @@
 //src/controller/productController.ts
 import { NextFunction, Request, Response } from "express";
 import Product from "../models/ProductModel";
-import mongoose from "mongoose";
 
 const getValidationErrorMessages = (error: any, res: Response) => {
   if (error.name === "ValidationError") {
@@ -48,10 +47,10 @@ export const fetchProducts = async (
 };
 
 /**
- * 
+ *
  * @desc Fetch a single active product by it's ID
- * @route GET /api/products/:id 
- * @access public 
+ * @route GET /api/products/:id
+ * @access public
  */
 
 export const fetchProductById = async (
@@ -61,16 +60,13 @@ export const fetchProductById = async (
 ): Promise<void> => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    res.status(400).json({ message: `Invalid product ID format: ${id}` });
-    return;
-  }
-
   try {
-    const product = await Product.findOne({id, isArchived: { $ne: true}});
+    const product = await Product.findOne({ id, isArchived: { $ne: true } });
 
     if (!product) {
-      res.status(404).json({ message: `Product with ID ${id} not found or is unavailable` });
+      res
+        .status(404)
+        .json({ message: `Product with ID ${id} not found or is unavailable` });
       return;
     }
 
@@ -85,30 +81,19 @@ export const fetchProductById = async (
 };
 
 /**
- * 
- * @desc Create new product 
- * @route GET /api/products/ 
+ *
+ * @desc Create new product
+ * @route GET /api/products/
  * @access private/admin
  */
-
 
 export const createProduct = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  const { name, imageUrl, price, description, category, stock } = req.body;
-
   try {
-    const newProduct = new Product({
-      name,
-      imageUrl,
-      price,
-      description,
-      category,
-      stock,
-    });
-
+    const newProduct = new Product(req.body);
     const savedProduct = await newProduct.save();
 
     res.status(201).json({
@@ -123,8 +108,8 @@ export const createProduct = async (
 };
 
 /**
- * 
- * @desc update existing product 
+ *
+ * @desc update existing product
  * @route PULL /api/products/:id
  * @access private/admin
  */
@@ -135,12 +120,6 @@ export const updateProductById = async (
   next: NextFunction
 ) => {
   const { id } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    res.status(400).json({ message: `Invalid product's ID format ${id}` });
-    return;
-  }
-
   try {
     const updatedProduct = await Product.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -164,9 +143,9 @@ export const updateProductById = async (
 };
 
 /**
- * 
+ *
  * @desc Delete a product (Soft delete)
- * @route DELETE /api/products/:id 
+ * @route DELETE /api/products/:id
  * @access private/admin
  */
 
@@ -176,10 +155,6 @@ export const deleteProductById = async (
   next: NextFunction
 ) => {
   const { id } = req.params;
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    res.status(400).json({ message: `Invalid product ID format for ${id}` });
-    return;
-  }
 
   try {
     const archivedProduct = await Product.findByIdAndUpdate(

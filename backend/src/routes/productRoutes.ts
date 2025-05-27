@@ -4,15 +4,29 @@ import {
   fetchProductById,
   createProduct,
   updateProductById,
-  deleteProductById
+  deleteProductById,
 } from "../controller/productController";
+import {
+  validateBody,
+  validateParams,
+} from "../middleware/validationMiddleware";
+import {
+  createProductSchema,
+  idParamSchema,
+  updateProductBodySchema,
+} from "../utils/validationSchemas";
 
 const router = express.Router();
 
 router.get("/", fetchProducts);
-router.get("/:id", fetchProductById);
-router.post("/", createProduct)
-router.put("/:id", updateProductById)
-router.delete("/:id", deleteProductById)
+router.get("/:id", validateParams(idParamSchema), fetchProductById);
+router.post("/", validateBody(createProductSchema), createProduct);
+router.put(
+  "/:id",
+  validateParams(idParamSchema),
+  validateBody(updateProductBodySchema),
+  updateProductById
+);
+router.delete("/:id", validateParams(idParamSchema), deleteProductById);
 
 export default router;
