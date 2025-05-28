@@ -1,6 +1,5 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
-import { rootReducer } from "./combinedReducers";
 import {
   FLUSH,
   PAUSE,
@@ -12,25 +11,35 @@ import {
   REHYDRATE,
 } from "redux-persist";
 
-const persisConfig = {
-  key: "root",
+import cartReducer from "../store/features/cart/cartSlice";
+import { apiSlice } from "./features/api/apiSlice";
+
+const cartPersistConfig = {
+  key: "cart",
   storage,
-  whiteList: ["cart"],
+  whiteList: ["items"],
 };
 
-const persistedReducer = persistReducer(persisConfig, rootReducer);
+const persistedCartReducer = persistReducer(cartPersistConfig, cartReducer);
+
+const rootReducer = combineReducers({
+  cart: persistedCartReducer,
+  [apiSlice.reducerPath]: apiSlice.reducer,
+});
+
 
 export const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }),
+    }).concat(apiSlice.middleware),
 });
 
-export const persistor = persistStore(store)
+
+export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
