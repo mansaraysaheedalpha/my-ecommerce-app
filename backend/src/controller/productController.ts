@@ -61,7 +61,7 @@ export const fetchProductById = async (
   const { id } = req.params;
 
   try {
-    const product = await Product.findOne({ id, isArchived: { $ne: true } });
+    const product = await Product.findOne({ _id:id, isArchived: { $ne: true } });
 
     if (!product) {
       res

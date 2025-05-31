@@ -12,7 +12,7 @@ import {
 } from "redux-persist";
 
 import cartReducer from "../store/features/cart/cartSlice";
-import { apiSlice } from "./features/api/apiSlice";
+import { apiSlice } from "./api/apiSlice";
 
 const cartPersistConfig = {
   key: "cart",
@@ -27,7 +27,6 @@ const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
 });
 
-
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
@@ -37,7 +36,6 @@ export const store = configureStore({
       },
     }).concat(apiSlice.middleware),
 });
-
 
 export const persistor = persistStore(store);
 

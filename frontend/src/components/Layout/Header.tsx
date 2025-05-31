@@ -16,7 +16,7 @@ const Header: React.FC = () => {
       <nav className="container mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="text-2xl  font-bold text-blue-600">
-            ShopSphere
+            SaloneAmazon
           </Link>
           <div className="space-x-6 items-center">
             <Link to="/" className="text-gray-600 hover:text-blue-600">

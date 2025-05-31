@@ -3,14 +3,40 @@ import React from "react";
 import { useParams, Link as RouterLink } from "react-router-dom"; // Import Link for "Back to products"
 import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
-import { mockProducts } from "../data/MockProducts";
+import { useGetProductByIdQuery } from "../store/api/apiSlice";
 import { addItemToCart } from "../store/features/cart/cartSlice";
 
 const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
+  const {
+    data: productData,
+    isLoading,
+    isError,
+    error,
+  } = useGetProductByIdQuery(productId!, { skip: !productId });
   const dispatch = useDispatch();
 
-  const product = mockProducts.find((p) => p.id.toString() === productId);
+  if (!productId) {
+    // Handle case where productId might somehow be undefined
+    return <div className="text-center py-10">Invalid product ID.</div>;
+  }
+
+  if (isLoading) {
+    return <div className="text-center py-10">Loading product details...</div>;
+  }
+
+  if (isError) {
+    console.error("Error fetching product:", error);
+
+    let errorMessage = "Error loading product details. Please try again later.";
+    if (error && "status" in error && error.status === 404) {
+      errorMessage = (error.data as any)?.message || "Product not found.";
+    } else if (error && "data" in error && (error.data as any)?.message) {
+      errorMessage = (error.data as any)?.message;
+    }
+    return <div className="text-center py-10 text-red-500">{errorMessage}</div>;
+  }
+  const product = productData?.product;
 
   if (!product) {
     return (
@@ -64,7 +90,7 @@ const ProductDetailPage: React.FC = () => {
 
       <div className="flex flex-col md:flex-row lg:gap-12">
         {/* Left Column: Product Image */}
-        <div className="md:w-1/2 lg:w-2/5">
+        <div className="md:w-1/2 lg:w-2/5 mr-5">
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <img
               src={imageUrl}
@@ -75,7 +101,7 @@ const ProductDetailPage: React.FC = () => {
         </div>
 
         {/* Right Column: Product Details */}
-        <div className="md:w-1/2 lg:w-3/5">
+        <div className="md:w-1/2 lg:w-3/5 ml-10">
           {category && (
             <span className="text-xs font-semibold text-blue-600 bg-blue-100 px-3 py-1 rounded-full uppercase tracking-wider ">
               {category}

@@ -1,8 +1,10 @@
 //src/store/api/apiSlice.ts
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import {type Product } from "../../../interfaces/Products";
 
-const API_BASE_URL = "http://localhost:3000/api/";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import type { Product } from "../../interfaces/Products";
+
+const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/";
 
 interface GetProductsResponse {
   message: string;
@@ -17,30 +19,27 @@ interface GetProductByIdResponse {
 
 export const apiSlice = createApi({
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({ baseUrl: API_BASE_URL }),
+  baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
   tagTypes: ["Product"],
   endpoints: (builder) => ({
-    // endpoint to get all products
     getProducts: builder.query<GetProductsResponse, void>({
       query: () => "products",
       providesTags: (result) =>
         result
           ? [
-              ...result.products.map(({ id }) => ({
+              ...result.products.map(({ _id }) => ({
                 type: "Product" as const,
-                id: id,
+                id: _id,
               })),
               { type: "Product", id: "LIST" },
             ]
           : [{ type: "Product", id: "LIST" }],
     }),
-
-    //Endpoint to get a single Product by it's ID
     getProductById: builder.query<GetProductByIdResponse, string>({
-      query: (id) => `products/${id}`,
-      providesTags: (result, error, id) => [{ type: 'Product', id: id }],
-    })
+      query: (id: string) => `products/${id}`,
+      providesTags: (result, error, _id) => [{ type: "Product", id: _id }],
+    }),
   }),
 });
 
-export const { useGetProductsQuery, useGetProductByIdQuery} = apiSlice;
+export const { useGetProductsQuery, useGetProductByIdQuery } = apiSlice;

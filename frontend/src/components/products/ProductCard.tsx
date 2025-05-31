@@ -10,7 +10,7 @@ type ProductCardProps = {
 };
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { id, imageUrl, name, price, category } = product;
+  const { _id, imageUrl, name, price, category } = product;
   const dispatch = useDispatch();
 
   const handleAddToCart = () => {
@@ -20,7 +20,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className="group relative bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl">
-      <Link to={`/products/${id}`}>
+      <Link to={`/products/${_id}`}>
         <div className="w-full h-64 overflow-hidden">
           <img
             src={imageUrl}
@@ -51,7 +51,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </button>
 
         <Link
-          to={`/products/${id}`}
+          to={`/products/${_id}`}
           className="block text-sm text-center text-blue-600 mt-2 hover:text-blue-800"
         >
           View Details
