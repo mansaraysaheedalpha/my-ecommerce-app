@@ -44,5 +44,50 @@ export const idParamSchema = z.object({
   }),
 });
 
+export const registerBodySchema = z
+  .object({
+    name: z
+      .string({
+        required_error: "Name is required",
+        invalid_type_error: "Name must be a string",
+      })
+      .min(3, { message: "Name must be at least 3 characters long" }),
+    email: z
+      .string({
+        required_error: "email is required",
+        invalid_type_error: "email must be a string",
+      })
+      .email({ message: "Invalid email address format" })
+      .trim(),
+    password: z
+      .string({
+        required_error: "password is required",
+      })
+      .min(6, { message: "Password must be at least 6 characters long" }),
+  })
+  .strict();
+
+export const loginBodySchema = z.object({
+  email: z
+    .string({
+      required_error: "email is required",
+    })
+    .email({ message: "Invalid email address format" })
+    .trim(),
+  password: z.string({
+    required_error: "password is required",
+  }),
+});
+
+export const refreshTokenBodySchema = z.object({
+  token: z.string({
+    required_error: "Refresh token is required",
+  }),
+});
+
 export type CreateProductInput = z.infer<typeof productCoreSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductBodySchema>;
+
+export type RegisterBodyType = z.infer<typeof registerBodySchema>;
+export type LoginBodyType = z.infer<typeof loginBodySchema>;
+export type RefreshTokenBodyType = z.infer<typeof refreshTokenBodySchema>;

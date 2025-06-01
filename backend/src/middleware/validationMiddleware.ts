@@ -5,9 +5,7 @@ export const validateBody =
   (schema: AnyZodObject) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      await schema.parseAsync({
-        body: req.body,
-      });
+      await schema.parseAsync(req.body);
       next();
     } catch (error: any) {
       if (error instanceof ZodError) {
@@ -29,7 +27,7 @@ export const validateBody =
     }
   };
 
-  /**
+/**
  * Middleware to validate URL parameters (req.params) against a Zod schema.
  * @param schema - The Zod schema to validate req.params against.
  */
@@ -37,10 +35,9 @@ export const validateBody =
 export const validateParams =
   (schema: AnyZodObject) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
     try {
-      await schema.parseAsync(req.params)
-      next()
+      await schema.parseAsync(req.params);
+      next();
     } catch (error: any) {
       if (error instanceof ZodError) {
         const formattedErrors = error.errors.map((err) => ({

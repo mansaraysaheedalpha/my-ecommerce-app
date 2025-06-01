@@ -1,21 +1,13 @@
 //src/controller/productController.ts
 import { NextFunction, Request, Response } from "express";
 import Product from "../models/ProductModel";
+import {
+  CreateProductInput,
+  UpdateProductInput,
+} from "../utils/validationSchemas";
+import { getValidationErrorMessages } from "../utils/errorhandler.utils";
 
-const getValidationErrorMessages = (error: any, res: Response) => {
-  if (error.name === "ValidationError") {
-    let validationError: { [key: string]: string } = {};
-    Object.keys(error.errors).forEach((key) => {
-      validationError[key] = error.errors[key].message;
-    });
-    res.status(400).json({
-      message: "Validation failed. Please check your data",
-      errors: validationError,
-    });
-    return true;
-  }
-  return false;
-};
+
 /**
  *
  * @desc Fetch all active products
@@ -61,7 +53,10 @@ export const fetchProductById = async (
   const { id } = req.params;
 
   try {
-    const product = await Product.findOne({ _id:id, isArchived: { $ne: true } });
+    const product = await Product.findOne({
+      _id: id,
+      isArchived: { $ne: true },
+    });
 
     if (!product) {
       res
@@ -88,7 +83,7 @@ export const fetchProductById = async (
  */
 
 export const createProduct = async (
-  req: Request,
+  req: Request<{}, {}, CreateProductInput>,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
@@ -115,7 +110,7 @@ export const createProduct = async (
  */
 
 export const updateProductById = async (
-  req: Request,
+  req: Request<{ id: string }, {}, UpdateProductInput>,
   res: Response,
   next: NextFunction
 ) => {
