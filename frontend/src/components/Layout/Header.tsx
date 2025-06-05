@@ -1,15 +1,37 @@
 import React from "react";
-import { Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
+import { useLogoutUserMutation } from "../../store/api/apiSlice";
+import { clearCredentials } from "../../store/features/auth/authSlice";
+import toast from "react-hot-toast";
 
 const Header: React.FC = () => {
   const cartItems = useSelector((state: RootState) => state.cart.items);
-
   const totalItemsInCart = cartItems.reduce(
     (total, item) => total + item.quantity,
     0
   );
+
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
+  const currentUser = useSelector((state: RootState) => state.auth.userInfo);
+  const navigate = useNavigate();
+  const [logoutUser, { isLoading: isLoggingOut }] = useLogoutUserMutation();
+
+  const handleLogout = async () => {
+
+    try {
+      await logoutUser().unwrap();
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (err: any) {
+      console.error("Failed to logout", err);
+      toast.error(err.data?.message || "Logout failed. Please try again");
+      navigate("/login");
+    }
+  };
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -35,10 +57,39 @@ const Header: React.FC = () => {
                   {totalItemsInCart}
                 </span>
               )}
-              {/* <Link>
-              for profile login
-              </Link> */}
             </Link>
+
+            {isAuthenticated && currentUser ? (
+              <>
+                <span className="text-slate-700">
+                  Hi, {currentUser.name.split(" ")[0]}!
+                </span>
+                <button
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  className="text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
+                >
+                  {isLoggingOut ? "Logging out..." : "Logout"}
+                </button>
+                {/* Optionally, add a link to a user profile page here later */}
+                {/* <Link to="/profile" className="text-gray-600 hover:text-blue-600">Profile</Link> */}
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="text-gray-600 hover:text-blue-600 transition-colors"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>

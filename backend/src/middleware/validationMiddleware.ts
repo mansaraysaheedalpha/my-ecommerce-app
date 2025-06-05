@@ -14,7 +14,7 @@ export const validateBody =
           path: err.path.join("."),
         }));
         res.status(400).json({
-          message: "Input validation failed. Please check your",
+          message: "Input validation failed. Please check your data",
           errors: formattedErrors,
         });
         return;

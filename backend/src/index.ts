@@ -6,6 +6,8 @@ import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
+
 import connectDB from "./config/db";
 import productRoutes from "./routes/productRoutes";
 import authRoutes from "./routes/authRoutes";
@@ -16,9 +18,15 @@ const app: Application = express();
 const PORT = process.env.PORT || "3000";
 
 // ---Request configuration middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(helmet());
 app.use(express.json());
+app.use(cookieParser());
 
 const authLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -33,7 +41,7 @@ const authLimit = rateLimit({
 
 // ----Requests Routes----
 app.use("/api/products", productRoutes);
-app.use("/api/auth", authLimit, authRoutes);
+app.use("/api/auth", authRoutes);
 // ----End Requests Routes-----
 
 //------Error Middleware----

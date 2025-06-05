@@ -1,4 +1,4 @@
-// SaloneAmazon/backend/src/utils/generateToken.ts
+//src/utils/generateToken.ts
 import jwt from "jsonwebtoken";
 // No need to import SignOptions if we are careful, but it doesn't hurt
 // import type { SignOptions } from 'jsonwebtoken';

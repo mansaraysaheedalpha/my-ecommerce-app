@@ -79,15 +79,8 @@ export const loginBodySchema = z.object({
   }),
 });
 
-export const refreshTokenBodySchema = z.object({
-  token: z.string({
-    required_error: "Refresh token is required",
-  }),
-});
-
 export type CreateProductInput = z.infer<typeof productCoreSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductBodySchema>;
 
 export type RegisterBodyType = z.infer<typeof registerBodySchema>;
 export type LoginBodyType = z.infer<typeof loginBodySchema>;
-export type RefreshTokenBodyType = z.infer<typeof refreshTokenBodySchema>;

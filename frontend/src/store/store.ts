@@ -1,3 +1,4 @@
+//src/store/store.ts
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import storage from "redux-persist/lib/storage";
 import {
@@ -10,20 +11,28 @@ import {
   REGISTER,
   REHYDRATE,
 } from "redux-persist";
-
+import authReducer from "../store/features/auth/authSlice";
 import cartReducer from "../store/features/cart/cartSlice";
 import { apiSlice } from "./api/apiSlice";
 
 const cartPersistConfig = {
   key: "cart",
   storage,
-  whiteList: ["items"],
+  whitelist: ["items"],
+};
+
+const authPersistConfig = {
+  key: "auth",
+  storage,
+  whitelist: ["userInfo", "isAuthenticated"],
 };
 
 const persistedCartReducer = persistReducer(cartPersistConfig, cartReducer);
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 
 const rootReducer = combineReducers({
   cart: persistedCartReducer,
+  auth: persistedAuthReducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
 });
 

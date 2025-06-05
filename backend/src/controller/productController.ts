@@ -5,8 +5,7 @@ import {
   CreateProductInput,
   UpdateProductInput,
 } from "../utils/validationSchemas";
-import { getValidationErrorMessages } from "../utils/errorhandler.utils";
-
+import { getValidationErrorMessages } from "../utils/helpers";
 
 /**
  *

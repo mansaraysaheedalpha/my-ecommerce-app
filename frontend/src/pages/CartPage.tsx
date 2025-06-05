@@ -27,7 +27,7 @@ const CartPage: React.FC = () => {
    * Handles incrementing the quantity of a cart item.
    * @param {CartItem["id"]} itemId - The ID of the item to increment.
    */
-  const handleIncrement = (itemId: CartItem["id"]) => {
+  const handleIncrement = (itemId: string) => {
     dispatch(incrementQuantity(itemId));
   };
 
@@ -36,7 +36,7 @@ const CartPage: React.FC = () => {
    * If quantity becomes 0, the item is removed from the cart by the reducer.
    * @param {CartItem["id"]} itemId - The ID of the item to decrement.
    */
-  const handleDecrement = (itemId: CartItem["id"]) => {
+  const handleDecrement = (itemId: string) => {
     dispatch(decrementQuantity(itemId));
   };
 
@@ -44,10 +44,7 @@ const CartPage: React.FC = () => {
    * Handles removing an item completely from the cart.
    * @param {CartItem["id"]} itemId - The ID of the item to remove.
    */
-  const handleRemoveItem = (
-    itemId: CartItem["id"],
-    itemName: CartItem["name"]
-  ) => {
+  const handleRemoveItem = (itemId: string, itemName: CartItem["name"]) => {
     dispatch(removeItemFromCart(itemId));
     toast.success(`${itemName} removed from cart.`, {
       icon: "🗑️",
@@ -132,13 +129,13 @@ const CartPage: React.FC = () => {
       <div className="bg-white shadow-xl rounded-lg p-4 md:p-6">
         {/* Mapping through cart items to display each one */}
         {cartItems.map((cartItem) => {
-          const { id, imageUrl, name, price, quantity } = cartItem;
+          const { _id, imageUrl, name, price, quantity } = cartItem;
 
           return (
             // Container for a single cart item row
             <div
               className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 py-6 border-b border-slate-200 last:border-b-0" // Increased py
-              key={id}
+              key={_id}
             >
               {/* Product Information (Image, Name, Price per unit) */}
               <div className="flex items-center grow md:grow-0 md:w-2/5 lg:w-1/2">
@@ -151,7 +148,7 @@ const CartPage: React.FC = () => {
                   <h3 className="text-lg font-semibold text-slate-800 hover:text-blue-600 transition-colors">
                     {" "}
                     {/* Added hover, adjusted color */}
-                    <RouterLink to={`/products/${id}`}>{name}</RouterLink>{" "}
+                    <RouterLink to={`/products/${_id}`}>{name}</RouterLink>{" "}
                     {/* Link to product page */}
                   </h3>
                   <p className="text-sm text-slate-500">
@@ -167,8 +164,8 @@ const CartPage: React.FC = () => {
                 <button
                   className="px-3 py-1 border border-slate-300 rounded-md hover:bg-slate-100 text-slate-700 transition-colors disabled:opacity-50"
                   aria-label="Decrement quantity"
-                  onClick={() => handleDecrement(id)}
-                  disabled={quantity <= 1} // Disable if quantity is 1 (or handle in reducer to remove)
+                  onClick={() => handleDecrement(_id)}
+                  // disabled={quantity <= 1} // Disable if quantity is 1 (or handle in reducer to remove)
                 >
                   -
                 </button>
@@ -178,7 +175,7 @@ const CartPage: React.FC = () => {
                 <button
                   className="px-3 py-1 border border-slate-300 rounded-md hover:bg-slate-100 text-slate-700 transition-colors"
                   aria-label="Increment quantity"
-                  onClick={() => handleIncrement(id)}
+                  onClick={() => handleIncrement(_id)}
                 >
                   +
                 </button>
@@ -198,7 +195,7 @@ const CartPage: React.FC = () => {
                 <button
                   className="text-red-500 hover:text-red-700 font-medium text-sm py-1 px-2 rounded hover:bg-red-50 transition-colors"
                   aria-label="Remove Item"
-                  onClick={() => handleRemoveItem(id, name)}
+                  onClick={() => handleRemoveItem(_id, name)}
                 >
                   Remove
                 </button>

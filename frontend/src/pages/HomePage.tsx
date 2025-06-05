@@ -2,11 +2,31 @@
 import React from "react";
 import { Link } from "react-router-dom"; // For the CTA button
 import ProductCard from "../components/products/ProductCard";
-import { useGetProductsQuery } from "../store/api/apiSlice"; // To fetch products
+import { useGetProductsQuery, useLazyGetMeQuery } from "../store/api/apiSlice"; // To fetch products
 import { type Product } from "../interfaces/Products"; // Your Product interface
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 // We will import ProductCard and useGetProductsQuery later for Featured Products
 
 const HomePage: React.FC = () => {
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
+  const currentUser = useSelector((state: RootState) => state.auth.userInfo);
+  const [
+    triggerGetMe,
+    {
+      isLoading: isLoadingMe,
+      data: meData,
+      isError: isMeError,
+      error: meError,
+    },
+  ] = useLazyGetMeQuery();
+
+  const handleFetchProfile = () => {
+    triggerGetMe(); // Call the lazy query
+  };
+
   const heroImageUrl =
     "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1920&auto=format&fit=crop";
 
@@ -230,6 +250,40 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+      {isAuthenticated && (
+        <section className="py-10 bg-white">
+          <div className="container mx-auto px-6 text-center">
+            <h3 className="text-2xl font-semibold text-slate-700 mb-4">
+              User Profile Test Area
+            </h3>
+            <p className="mb-2">Welcome, {currentUser?.name}!</p>
+            <button
+              onClick={handleFetchProfile}
+              disabled={isLoadingMe}
+              className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out"
+            >
+              {isLoadingMe
+                ? "Fetching Profile..."
+                : "Fetch My Profile (Protected)"}
+            </button>
+            {meData && (
+              <div className="mt-4 p-4 bg-green-100 text-green-700 rounded">
+                <h4 className="font-bold">Profile Data Received:</h4>
+                <pre className="text-left whitespace-pre-wrap break-all">
+                  {JSON.stringify(meData.user, null, 2)}
+                </pre>
+              </div>
+            )}
+            {isMeError && (
+              <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
+                <h4 className="font-bold">Error Fetching Profile:</h4>
+                <p>{(meError as any)?.data?.message || "An error occurred."}</p>
+                <p>Status: {(meError as any)?.status}</p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
       {/* Other sections like Category Spotlights can be added later */}
     </div>
   );
