@@ -1,0 +1,637 @@
+# OpenAPI Specification version
+openapi: 3.0.3
+info:
+  title: SaloneAmazon E-Commerce Admin API
+  version: 2.0.0 # Incremented version due to significant refinements
+  description: |
+    **Secure admin panel endpoints for managing users, products, and system operations.**
+    All endpoints require admin privileges, enforced via Bearer (JWT) authentication.
+    This API provides comprehensive control over the e-commerce platform's backend entities.
+  # Added contact info for maintainability
+  contact:
+    name: SaloneAmazon API Support
+    url: https://saloneamazon.com/support
+    email: api.support@saloneamazon.com
+  # Added license info for legal clarity
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  # Added external documentation link
+externalDocs:
+  description: Find more about SaloneAmazon Admin Panel documentation
+  url: https://docs.saloneamazon.com/admin-api
+
+servers:
+  - url: https://api.saloneamazon.com/v1/admin # Changed to a full domain for clarity and production readiness
+    description: Production Admin API base path
+  - url: http://localhost:3000/api/v1/admin # Added a local development server
+    description: Local Development Admin API base path
+
+tags: # Defined tags with descriptions for better organization
+  - name: User Management
+    description: Operations related to managing user accounts and profiles.
+  - name: Product Management
+    description: Endpoints for overseeing product listings, inventory, and status.
+  - name: System
+    description: Administrative functionalities, including audit logs and system health.
+
+paths:
+  /users:
+    get:
+      tags: [User Management]
+      summary: List all users with pagination
+      description: Retrieves a paginated list of all registered users, accessible only to administrators.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageQueryParam" # Reusable parameter
+        - $ref: "#/components/parameters/LimitQueryParam" # Reusable parameter
+        - name: email
+          in: query
+          description: Filter users by exact email address.
+          schema:
+            type: string
+            format: email
+          example: user@example.com
+      responses:
+        200:
+          description: Paginated list of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - users
+                  - pagination
+              examples: # Added example response
+                SuccessResponse:
+                  value:
+                    users:
+                      - id: "60c72b2f9b1d8e001c8a4a0a"
+                        name: "Alice Smith"
+                        email: "alice@example.com"
+                        roles: ["user", "editor"]
+                        isVerified: true
+                        createdAt: "2023-01-15T10:00:00Z"
+                      - id: "60c72b2f9b1d8e001c8a4a0b"
+                        name: "Bob Johnson"
+                        email: "bob@example.com"
+                        roles: ["user"]
+                        isVerified: false
+                        createdAt: "2023-02-20T11:30:00Z"
+                    pagination:
+                      page: 1
+                      limit: 20
+                      total: 45
+                      pages: 3
+        401:
+          $ref: "#/components/responses/Unauthorized" # Added Unauthorized response
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/InternalServerError" # Added Internal Server Error
+
+  /users/{id}:
+    patch:
+      tags: [User Management]
+      summary: Update user roles and status
+      description: Allows an administrator to update a specific user's roles and verification status.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the user. (e.g., MongoDB ObjectId)
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+          example: "60c72b2f9b1d8e001c8a4a0c" # Added example for path parameter
+      requestBody:
+        required: true
+        description: User fields to update. Only provided fields will be modified.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                roles:
+                  type: array
+                  description: An array of roles to assign to the user.
+                  items:
+                    type: string
+                    enum: [user, editor, admin, superadmin]
+                  minItems: 1 # A user should have at least one role
+                isVerified:
+                  type: boolean
+                  description: Whether the user's account is verified.
+              # added `minProperties` to ensure at least one field is provided
+              minProperties: 1
+            examples: # Added example request body
+              UpdateRoles:
+                value:
+                  roles: ["admin", "editor"]
+              UpdateVerification:
+                value:
+                  isVerified: true
+              UpdateBoth:
+                value:
+                  roles: ["user"]
+                  isVerified: false
+      responses:
+        200:
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+              examples: # Example of the updated user object
+                SuccessResponse:
+                  value:
+                    id: "60c72b2f9b1d8e001c8a4a0c"
+                    name: "John Doe"
+                    email: "john.doe@example.com"
+                    roles: ["user", "admin"]
+                    isVerified: true
+                    createdAt: "2023-03-01T14:15:00Z"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        404:
+          $ref: "#/components/responses/NotFound" # Added Not Found response
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /products:
+    get:
+      tags: [Product Management]
+      summary: Get all products including archived
+      description: Retrieves a paginated list of all products, including those marked as archived.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageQueryParam" # Reusable parameter
+        - $ref: "#/components/parameters/LimitQueryParam" # Reusable parameter
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+            default: false # Added a default value for 'archived' filter
+          description: Filter products by their archived status. If not provided, defaults to showing non-archived products.
+          example: true
+      responses:
+        200:
+          description: Product list with metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - products
+                  - pagination
+              examples:
+                SuccessResponse:
+                  value:
+                    products:
+                      - id: "prod001"
+                        name: "Premium Wireless Earbuds"
+                        price: 79.99
+                        isArchived: false
+                        createdAt: "2023-04-01T09:00:00Z"
+                      - id: "prod002"
+                        name: "Smart Fitness Tracker"
+                        price: 49.99
+                        isArchived: true
+                        createdAt: "2023-03-20T14:00:00Z"
+                    pagination:
+                      page: 1
+                      limit: 20
+                      total: 120
+                      pages: 6
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  /audit-logs:
+    get:
+      tags: [System]
+      summary: Retrieve system audit logs
+      description: Fetches a paginated list of system audit events, providing a historical record of administrative actions.
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageQueryParam" # Reusable parameter
+        - $ref: "#/components/parameters/LimitQueryParam" # Reusable parameter
+        - name: action
+          in: query
+          schema:
+            type: string
+            # Example: add enum if actions are predefined
+            # enum: [user_created, user_updated, product_archived, product_deleted]
+          description: Filter audit logs by a specific action type (e.g., 'user_updated', 'product_created').
+          example: user_updated
+        - name: userId
+          in: query
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+          description: Filter audit logs by the ID of the user who performed the action.
+          example: "60c72b2f9b1d8e001c8a4a0d"
+      responses:
+        200:
+          description: List of audit events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditLog"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+                required:
+                  - logs
+                  - pagination
+              examples:
+                SuccessResponse:
+                  value:
+                    logs:
+                      - action: "user_updated"
+                        entity: "User"
+                        entityId: "60c72b2f9b1d8e001c8a4a0a"
+                        userId: "60c72b2f9b1d8e001c8a4a0c"
+                        userEmail: "admin@saloneamazon.com"
+                        createdAt: "2023-05-10T08:30:00Z"
+                      - action: "product_archived"
+                        entity: "Product"
+                        entityId: "prod001"
+                        userId: "60c72b2f9b1d8e001c8a4a0c"
+                        userEmail: "admin@saloneamazon.com"
+                        createdAt: "2023-05-10T09:00:00Z"
+                    pagination:
+                      page: 1
+                      limit: 20
+                      total: 75
+                      pages: 4
+        401:
+          $ref: "#/components/responses/Unauthorized"
+        403:
+          $ref: "#/components/responses/Forbidden"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Provide a valid JWT access token for authentication.
+
+  parameters: # Reusable parameters
+    PageQueryParam:
+      name: page
+      in: query
+      description: Page number for pagination.
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+      required: false # Query parameters are usually optional by default, but explicitly stating is good.
+    LimitQueryParam:
+      name: limit
+      in: query
+      description: Number of items per page.
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+      required: false
+
+  schemas:
+    User:
+      title: User
+      type: object
+      required: # Explicitly state required properties
+        - id
+        - name
+        - email
+        - roles
+        - isVerified
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user.
+          readOnly: true # This ID is generated by the server, not sent by client
+          example: "60c72b2f9b1d8e001c8a4a0a"
+        name:
+          type: string
+          description: Full name of the user.
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          description: User's email address (must be unique).
+          example: "jane.doe@example.com"
+        roles:
+          type: array
+          description: An array of roles assigned to the user.
+          items:
+            type: string
+            enum: [user, editor, admin, superadmin] # Explicitly define allowed roles
+          example: ["user", "admin"]
+        isVerified:
+          type: boolean
+          description: Indicates if the user's email address has been verified.
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was created (ISO 8601 format).
+          readOnly: true # Generated by the server
+          example: "2023-01-15T10:00:00Z"
+        # Consider adding 'updatedAt' if your models support it
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was last updated (ISO 8601 format).
+          readOnly: true
+          example: "2023-06-07T12:00:00Z"
+
+    Product:
+      title: Product
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - isArchived
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the product.
+          readOnly: true
+          example: "prod001"
+        name:
+          type: string
+          description: Name of the product.
+          example: "Salone Amazon T-Shirt"
+        price:
+          type: number
+          format: float # More specific type for price
+          description: Price of the product.
+          minimum: 0 # Price cannot be negative
+          example: 25.99
+        isArchived:
+          type: boolean
+          description: Indicates if the product is archived (not visible to regular users).
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the product was added (ISO 8601 format).
+          readOnly: true
+          example: "2023-04-01T09:00:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user account was last updated (ISO 8601 format).
+          readOnly: true
+          example: "2023-06-07T12:00:00Z"
+
+    AuditLog:
+      title: Audit Log Entry
+      type: object
+      required:
+        - action
+        - entity
+        - entityId
+        - userId
+        - userEmail
+        - createdAt
+      properties:
+        action:
+          type: string
+          description: The action performed (e.g., 'user_created', 'product_archived').
+          example: "user_updated"
+        entity:
+          type: string
+          description: The type of entity affected (e.g., 'User', 'Product').
+          example: "User"
+        entityId:
+          type: string
+          description: The ID of the affected entity.
+          example: "60c72b2f9b1d8e001c8a4a0a"
+        userId:
+          type: string
+          description: The ID of the user who performed the action.
+          example: "60c72b2f9b1d8e001c8a4a0c"
+        userEmail:
+          type: string
+          format: email
+          description: The email of the user who performed the action.
+          example: "admin@saloneamazon.com"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp of when the action occurred (ISO 8601 format).
+          readOnly: true
+          example: "2023-05-10T08:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp of when the action occurred (ISO 8601 format).
+          readOnly: true
+          example: "2025-05-10T08:30:00Z"
+
+    Pagination:
+      title: Pagination Metadata
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - pages
+      properties:
+        page:
+          type: integer
+          description: The current page number.
+          minimum: 1
+          example: 1
+        limit:
+          type: integer
+          description: The number of items returned per page.
+          minimum: 1
+          example: 20
+        total:
+          type: integer
+          description: The total number of items available across all pages.
+          minimum: 0
+          example: 45
+        pages:
+          type: integer
+          description: The total number of pages available.
+          minimum: 1
+          example: 3
+
+  responses:
+    BadRequest:
+      description: Invalid request data or parameters.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: error
+              message:
+                type: string
+                example: "Invalid request data. Please check your inputs."
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    path:
+                      type: string
+                      description: The field that caused the error.
+                      example: "email"
+                    message:
+                      type: string
+                      description: A description of the error.
+                      example: "Email format is invalid."
+            required:
+              - status
+              - message
+          examples:
+            InvalidInput:
+              value:
+                status: "error"
+                message: "Invalid request data. Please check your inputs."
+                errors:
+                  - path: "roles[0]"
+                    message: "Role 'guest' is not allowed."
+                  - path: "isVerified"
+                    message: "isVerified must be a boolean."
+
+    Unauthorized: # Added a common Unauthorized response
+      description: Authentication is required or has failed.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: error
+              message:
+                type: string
+                example: "Authentication failed. Please provide a valid token."
+            required:
+              - status
+              - message
+          examples:
+            MissingToken:
+              value:
+                status: "error"
+                message: "Authentication failed. No token provided."
+            InvalidToken:
+              value:
+                status: "error"
+                message: "Authentication failed. Invalid or expired token."
+
+    Forbidden:
+      description: Insufficient permissions to access this resource.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: error
+              message:
+                type: string
+                example: "Access denied. You do not have the required permissions."
+            required:
+              - status
+              - message
+          examples:
+            InsufficientPrivileges:
+              value:
+                status: "error"
+                message: "Access denied. Requires admin privileges."
+
+    NotFound: # Added a common Not Found response
+      description: The requested resource was not found.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: error
+              message:
+                type: string
+                example: "Resource not found."
+            required:
+              - status
+              - message
+          examples:
+            UserNotFound:
+              value:
+                status: "error"
+                message: "User with ID 'nonexistentid' not found."
+            ProductNotFound:
+              value:
+                status: "error"
+                message: "Product not found."
+
+    InternalServerError: # Added a common Internal Server Error response
+      description: An unexpected server error occurred.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: error
+              message:
+                type: string
+                example: "An unexpected error occurred. Please try again later."
+            required:
+              - status
+              - message
+          examples:
+            GenericError:
+              value:
+                status: "error"
+                message: "An internal server error occurred."

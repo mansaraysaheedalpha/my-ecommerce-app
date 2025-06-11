@@ -39,10 +39,20 @@ const authLimit = rateLimit({
   },
 });
 
+//admin rate Limit
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  message: "Too many admin requests"
+})
+
 // ----Requests Routes----
 app.use("/api/products", productRoutes);
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimit, authRoutes)
 // ----End Requests Routes-----
+
+
 
 //------Error Middleware----
 import { NextFunction } from "express";

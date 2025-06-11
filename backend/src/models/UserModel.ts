@@ -9,6 +9,9 @@ export interface IUser extends Document {
   passwordHash: string;
   matchPassword: (password: string) => Promise<boolean>;
   roles: string[];
+  permissions?: string;
+  lastAdminAccess?: Date;
+  isVerified: boolean;
   refreshTokens?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -40,8 +43,20 @@ const UserSchema = new Schema<IUser>(
     },
     roles: {
       type: [String],
+      enum: ["user", "editor", "admin", "superadmin"],
       default: ["user"],
-      enum: ["user", "admin"],
+    },
+    permissions: [
+      {
+        type: String,
+      },
+    ],
+    lastAdminAccess: {
+      type: Date,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
     refreshTokens: {
       type: [String],
@@ -63,6 +78,10 @@ UserSchema.pre("save", async function (next) {
 UserSchema.methods.matchPassword = function (enteredPassowrd: string) {
   return bcrypt.compare(enteredPassowrd, this.passwordHash);
 };
+
+UserSchema.index({ roles: 1 });
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ updated: -1 });
 
 const User: mongoose.Model<IUser> = mongoose.model<IUser>("User", UserSchema);
 export default User;

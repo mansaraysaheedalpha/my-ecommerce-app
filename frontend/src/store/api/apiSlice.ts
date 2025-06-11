@@ -80,30 +80,24 @@ const baseQueryWithReaut: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-    console.log('[RTK-Reauth] Making initial request:', args);
   let result = await baseQueryOriginal(args, api, extraOptions);
-    console.log('[RTK-Reauth] Initial request result:', JSON.parse(JSON.stringify(result))); // Log result (stringify to see content)
 
   if (result.error && result.error.status === 401) {
-      console.log('[RTK-Reauth] Initial request failed with 401. Attempting refresh.');
     const refreshResult = await baseQueryOriginal(
       { url: "auth/refresh", method: "POST" },
       api,
       extraOptions
     );
-  console.log('[RTK-Reauth] Refresh token attempt result:', JSON.parse(JSON.stringify(refreshResult)));
-    console.log("Refresh token attempt result:", refreshResult);
     if (refreshResult.data) {
-      
       const newAccessToken = (refreshResult.data as RefreshTokenApiResponse)
         .accessToken;
       if (newAccessToken) {
-          console.log('[RTK-Reauth] Refresh SUCCESS. New accessToken:', newAccessToken);
+        console.log(
+          "[RTK-Reauth] Refresh SUCCESS. New accessToken:",
+          newAccessToken
+        );
         api.dispatch(updateAccessToken(newAccessToken));
-         console.log('[RTK-Reauth] Retrying original request with new accessToken...');
         result = await baseQueryOriginal(args, api, extraOptions);
-         console.log('[RTK-Reauth] Retried request result:', JSON.parse(JSON.stringify(result)));
-        console.log("new access token received and updated in Redux state");
       } else {
         console.error(
           "Refresh token call succeeds but no new access token was received"
@@ -111,7 +105,10 @@ const baseQueryWithReaut: BaseQueryFn<
         api.dispatch(clearCredentials());
       }
     } else {
-       console.error('[RTK-Reauth] Refresh FAILED. Logging out.', refreshResult.error);
+      console.error(
+        "[RTK-Reauth] Refresh FAILED. Logging out.",
+        refreshResult.error
+      );
       api.dispatch(clearCredentials());
     }
   }
@@ -139,7 +136,10 @@ export const apiSlice = createApi({
     }),
     getProductById: builder.query<GetProductByIdResponse, string>({
       query: (id: string) => `products/${id}`,
-      providesTags: (result, error, _id) => [{ type: "Product", id: _id }],
+      providesTags: (result) =>
+        result && result.product && result.product._id
+          ? [{ type: "Product", id: result.product._id }]
+          : [],
     }),
     getMe: builder.query<GetMeResponse, void>({
       query: () => "/auth/me",

@@ -1,9 +1,8 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
 import { useLogoutUserMutation } from "../../store/api/apiSlice";
-import { clearCredentials } from "../../store/features/auth/authSlice";
 import toast from "react-hot-toast";
 
 const Header: React.FC = () => {

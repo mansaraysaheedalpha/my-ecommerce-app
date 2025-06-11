@@ -1,5 +1,9 @@
+//backend/src/utils/validationSchemas.ts
 import { z } from "zod";
 import mongoose from "mongoose";
+
+export const userRoles = ['user', 'editor', 'admin', 'superadmin'] as const
+export type userRole = typeof userRoles[number]
 
 const productCoreSchema = z.object({
   name: z
@@ -43,6 +47,17 @@ export const idParamSchema = z.object({
     message: "Invalid Product ID format in URL parameter",
   }),
 });
+
+const userCoreSchema = z.object({
+  name: z.string().min(3),
+  email: z.string().email(),
+  roles: z.array(z.enum(userRoles)).default(['user']),
+  permissions: z.array(z.string()).optional(),
+  isVerified: z.boolean().default(false),
+  lastActive: z.date().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional()
+})
 
 export const registerBodySchema = z
   .object({

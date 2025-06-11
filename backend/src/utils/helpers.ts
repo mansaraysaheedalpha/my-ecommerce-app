@@ -1,5 +1,12 @@
 //src/utils/helpers.ts
 import { Response } from "express";
+
+interface ResponseOptions {
+  data?: any;
+  error?: Error;
+  stack?: boolean;
+}
+
 export const getValidationErrorMessages = (error: any, res: Response) => {
   if (error.name === "ValidationError") {
     let validationError: { [key: string]: string } = {};
@@ -34,3 +41,28 @@ export const convertToMilliseconds = (timeStr: string): number => {
       return 0;
   }
 };
+
+export const createResponse = (
+  res: Response,
+  statusCode: number,
+  message: string,
+  options: ResponseOptions = {}
+) => {
+  const { data, error, stack = false } = options;
+
+  const response: Record<string, any> = {
+    status: statusCode >= 400 ? "error" : "success",
+    message,
+  };
+
+  if (data) response.data = data;
+  if (error && process.env.NODE_ENV === "development") {
+    response.error = {
+      name: error.name,
+      message: error.message,
+      ...(stack ? { stack: error.stack } : {}),
+    };
+  }
+  return res.status(statusCode).json(response);
+};
+

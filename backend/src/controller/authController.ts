@@ -1,3 +1,4 @@
+//src/controller/authController.ts
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import User, { IUser } from "../models/UserModel";

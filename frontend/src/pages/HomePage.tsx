@@ -3,7 +3,6 @@ import React from "react";
 import { Link } from "react-router-dom"; // For the CTA button
 import ProductCard from "../components/products/ProductCard";
 import { useGetProductsQuery, useLazyGetMeQuery } from "../store/api/apiSlice"; // To fetch products
-import { type Product } from "../interfaces/Products"; // Your Product interface
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 // We will import ProductCard and useGetProductsQuery later for Featured Products
